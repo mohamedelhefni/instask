@@ -1,6 +1,6 @@
 import express, { Express, Request, Response, NextFunction } from 'express';
-import { EventRequest } from "./types/EventRequest";
-import HttpException from "./types/HttpException"
+import { Event } from "./models/event";
+import HttpException from "./models/HttpException"
 import routes from "./routes/routes";
 import dotenv from 'dotenv';
 
