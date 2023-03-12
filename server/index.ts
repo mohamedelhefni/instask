@@ -16,9 +16,9 @@ app.use((err: Error | HttpException, req: Request, res: Response, next: NextFunc
     // @ts-ignore
     if (err && err.errorCode) {
         // @ts-ignore
-        res.status(err.errorCode).json(err.message);
+        res.status(err.errorCode).json({code: err.errCode, message: err.message });
     } else if (err) {
-        res.status(500).json(err.message);
+        res.status(500).json({code: 500, message: "something went wrong" });
     }
 });
 
