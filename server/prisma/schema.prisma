@@ -6,8 +6,35 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
+model Event {
+  id          Int      @id @default(autoincrement())
+  object      String
+  actor       User     @relation(name: "EventActor", fields: [actorId], references: [id])
+  actorId     Int
+  group       String
+  action      Action   @relation(fields: [actionId], references: [id])
+  actionId    Int
+  target      User     @relation(name: "EventTarget", fields: [targetId], references: [id])
+  targetId    Int
+  location    String
+  occurred_at DateTime
+  metadata    Json
+}
 
+model User {
+  id           Int     @id @default(autoincrement())
+  name         String
+  targetEvents Event[] @relation(name: "EventTarget")
+  actorEvents  Event[] @relation(name: "EventActor")
+}
+
+model Action {
+  id     Int     @id @default(autoincrement())
+  object String
+  name   String
+  events Event[]
+}
