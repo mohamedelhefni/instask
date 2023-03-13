@@ -5,7 +5,7 @@ const isObj = (o: any) => o?.constructor === Object;
 
 function JSONToCSV(data: any[]): string {
     //@ts-ignore
-    const replacer = (key, value) => isObj(value) ? Object.values(value).slice(0, -2).join("|") : value;
+    const replacer = (key, value) => isObj(value) ? Object.values(value).join("|") : value;
     const header = Object.keys(data[0])
     const csv = [
         header.join(','), // header row first
