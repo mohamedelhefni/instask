@@ -1,13 +1,16 @@
 import { Dispatch, useState } from "react";
 import { BsFilter } from "react-icons/bs";
 import { IoDownload } from "react-icons/io5";
+import { downloadCSV } from "../utils/csv";
+import { Event } from "../types/types";
 
 interface HeadBarProps {
     isLiveLoading: boolean
     setIsLiveLoading: Dispatch<React.SetStateAction<boolean>>
+    events: Event[]
 }
 
-export function HeadBar({ isLiveLoading, setIsLiveLoading }: HeadBarProps) {
+export function HeadBar({ isLiveLoading, setIsLiveLoading, events }: HeadBarProps) {
     return <>
         <div className="flex items-center justify-center w-full  p-4 ">
             <input type="text" className="w-full  bg-transparent p-2 rounded-l-md border border-r-0 focus:outline-none focus:bg-white " placeholder="Search name,email or action..." />
@@ -16,7 +19,9 @@ export function HeadBar({ isLiveLoading, setIsLiveLoading }: HeadBarProps) {
                     <BsFilter size={20} />
                     <span>FILTER</span>
                 </button>
-                <button className="transition p-2.5  text-sm text-gray-800 hover:bg-gray-200 flex items-center gap-1">
+                <button onClick={() => {
+                    downloadCSV(events)
+                }} className="transition p-2.5  text-sm text-gray-800 hover:bg-gray-200 flex items-center gap-1">
                     <IoDownload size={20} />
                     <span>EXPORT</span>
                 </button>

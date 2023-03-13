@@ -80,6 +80,7 @@ function App() {
   let [isLiveLoading, setIsLiveLoading] = useState<boolean>(false);
   let [loadingInterval, setLoadingInterval] = useState<number>();
 
+
   useEffect(() => {
     if (isLiveLoading) {
       setLoadingInterval(setInterval(() => { console.log("test") }, 1000))
@@ -94,7 +95,7 @@ function App() {
       <div className="bg-white flex flex-col items-center justify-center min-h-screen py-10 px-20 ">
         <div className="container max-w-5xl ">
           <div className="w-full bg-gray-200/30   rounded-md shadow">
-            <HeadBar isLiveLoading={isLiveLoading} setIsLiveLoading={setIsLiveLoading} />
+            <HeadBar isLiveLoading={isLiveLoading} setIsLiveLoading={setIsLiveLoading} events={events} />
             <Table headers={["actor", "action", "date"]} events={events} />
             <button className="w-full transition text-center text-gray-800 p-4 text-md hover:bg-gray-400/20 ">
               LOAD MORE
