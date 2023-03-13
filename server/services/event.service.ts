@@ -1,14 +1,68 @@
 import prisma from "../prisma/client"
 import { Event } from "../models/event";
+import { createPagination } from "../utils/pagination";
 
-export const getEvents = async (query: string) => {
-    const eventsCount = await prisma.event.count();
+export interface EventsOptions {
+    page: number
+    limit: number
+    actorId?: number
+    targetId?: number
+    actionId?: number
+    name?: string
+}
+
+const buildFilterQuery = (options: EventsOptions): any[] => {
+    const { actionId, actorId, targetId, name } = options
+    const andQuery = []
+    if (actorId) andQuery.push({ actorId: actorId })
+    if (actionId) andQuery.push({ actionId: actionId })
+    if (targetId) andQuery.push({ targetId: targetId })
+    return andQuery;
+}
+
+
+const buildSearchQuery = (options: EventsOptions): any => {
+    const { name } = options
+    const orQuery = []
+    if (name) {
+        orQuery.push(
+            { actor: { name: { search: name } } },
+            { action: { name: { search: name } } },
+            { target: { name: { search: name } } },
+        )
+    }
+    return orQuery;
+}
+
+const buildWhereCondition = (options: EventsOptions): Object => {
+    const andQueries = buildFilterQuery(options)
+    const orQueries = buildSearchQuery(options)
+    const where: { AND?: any[], OR?: any } = { AND: andQueries, OR: orQueries }
+    if (andQueries.length == 0) delete where.AND
+    if (orQueries.length == 0) delete where.OR
+    return where;
+}
+
+export const getEvents = async (options: EventsOptions) => {
+    const { page, limit } = options;
+    const maxLimit = limit >= 100 ? 20 : limit
+    const startIndex = (page - 1) * maxLimit;
+    const whereCondition = buildWhereCondition(options)
+    const eventsCount = await prisma.event.count({ where: whereCondition });
     const events = await prisma.event.findMany({
-        include: { action: true, actor: true, target: true }
+        where: whereCondition,
+        skip: startIndex,
+        take: maxLimit,
+        orderBy: {
+            createdAt: 'desc',
+        },
+        include: { action: true, actor: true, target: true },
+
     })
     return {
         events: events,
-        count: eventsCount
+        count: eventsCount,
+        pagination: createPagination(page, maxLimit, eventsCount),
     }
 }
 
