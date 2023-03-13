@@ -23,21 +23,22 @@ function App() {
     isLoading
   } = useSWRInfinite<EventsResponse>(
     (index) =>
-      `${import.meta.env.VITE_API_ENDPOINT}/events?page=${index + 1}`,
+      `${import.meta.env.VITE_API_ENDPOINT}/events?page=${index + 1}&limit=10`,
     fetcher
   );
 
   useEffect(() => {
-    if (data) {
-      setEvents(data[0].events);
+    if (data && data[0].events?.length > 0) {
+      let mergedEvents = data.map(eventResp => {
+        return eventResp.events
+      })
+      setEvents(mergedEvents.flat());
     }
   }, [data])
 
   const isLoadingMore =
     isLoading || (size > 0 && data && typeof data[size - 1] === "undefined");
-  const isEmpty = data?.[0]?.events.length === 0;
-  const isReachingEnd =
-    isEmpty || (data && data[data.length - 1]?.events.length < PAGE_SIZE);
+  const isReachingEnd = !(data && data[data?.length - 1]?.pagination?.next);
 
 
   useEffect(() => {

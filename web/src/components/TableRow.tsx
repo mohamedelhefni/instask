@@ -52,11 +52,10 @@ function RegularRow({ name, action, date }: RegularRowProps) {
 export function TableRow({ id, activeRecord, setActiveRecord, event }: TableRowProps) {
     let isActive = id == activeRecord;
     return <>
-        {/* grid items center, and grow the middle column */}
         <div onClick={(e) => {
             e.stopPropagation()
             setActiveRecord(id)
-        }} className={`w-full  transition-all ease-linear    p-3 cursor-pointer ${isActive ? " rounded border bg-white scale-110 " : " grid grid-cols-3  hover:bg-gray-100"}  `} >
+        }} className={`w-full transition-transform duration-150 ease-linear p-3 cursor-pointer ${isActive ? " rounded border bg-white scale-110 " : " grid grid-cols-3  hover:bg-gray-100"}  `} >
             {isActive ? <ActiveRow  {...event} /> : <RegularRow name={event.actor.name} action={event.action.name} date={event.occurred_at} />}
         </div>
 
