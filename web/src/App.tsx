@@ -2,88 +2,47 @@ import { useEffect, useState } from "react";
 import { HeadBar } from "./components/HeadBar";
 import { Table } from "./components/Table";
 import { Event } from "./types/types"
+import { EventsResponse } from "./types/http"
+import useSWRInfinite from "swr/infinite";
+
+
 
 function App() {
-  let eventsData: Event[] = [{
-    object: "event",
-    action: {
-      id: 1,
-      name: "user.clicked_activity_log",
-      object: "action"
-    },
-    actor: {
-      id: 1,
-      name: "Mohamed Elhefni"
-    },
-    group: "instatus.com",
-    occurred_at: new Date(),
-    target: {
-      id: 1,
-      name: "Basem Hossam"
-    },
-    location: "10.34.32.02",
-    metadata: {
-      id: 1,
-      name: "test",
-      x_request_id: "X_REQUEST_FDADF"
-    }
-  },
-  {
-    object: "event",
-    action: {
-      id: 1,
-      name: "user.scroll_event_log",
-      object: "action"
-    },
-    actor: {
-      id: 1,
-      name: "Basem Elhefni"
-    },
-    group: "instatus.com",
-    occurred_at: new Date(),
-    target: {
-      id: 1,
-      name: "Ahemd Hossam"
-    },
-    location: "10.34.32.02",
-    metadata: {
-      id: 1,
-      name: "test",
-      request_id: "blah blah blah"
-    }
-  },
-  {
-    object: "event",
-    action: {
-      id: 1,
-      name: "user.searched_activity_log_events",
-      object: "action"
-    },
-    actor: {
-      id: 1,
-      name: "Farag Mansour"
-    },
-    group: "instatus.com",
-    occurred_at: new Date(),
-    target: {
-      id: 1,
-      name: "Farag Mansour"
-    },
-    location: "10.34.32.02",
-    metadata: {
-      id: 1,
-      name: "test",
-      request_id: "user_FADCXF1232"
-    }
-  }];
-  let [events, setEvents] = useState<Event[]>(eventsData);
+  const PAGE_SIZE = 6;
+  const fetcher = (url: string) => fetch(url).then((res) => res.json());
+  let [events, setEvents] = useState<Event[] | []>([]);
   let [isLiveLoading, setIsLiveLoading] = useState<boolean>(false);
   let [loadingInterval, setLoadingInterval] = useState<number>();
+  const {
+    data,
+    mutate,
+    error,
+    size,
+    setSize,
+    isValidating,
+    isLoading
+  } = useSWRInfinite<EventsResponse>(
+    (index) =>
+      `${import.meta.env.VITE_API_ENDPOINT}/events?page=${index + 1}`,
+    fetcher
+  );
+
+  useEffect(() => {
+    if (data) {
+      setEvents(data[0].events);
+    }
+  }, [data])
+
+  const isLoadingMore =
+    isLoading || (size > 0 && data && typeof data[size - 1] === "undefined");
+  const isEmpty = data?.[0]?.events.length === 0;
+  const isReachingEnd =
+    isEmpty || (data && data[data.length - 1]?.events.length < PAGE_SIZE);
 
 
   useEffect(() => {
     if (isLiveLoading) {
-      setLoadingInterval(setInterval(() => { console.log("test") }, 1000))
+      setLoadingInterval(setInterval(() => { mutate() }, 3000))
     } else {
       clearInterval(loadingInterval)
     }
@@ -95,10 +54,24 @@ function App() {
       <div className="bg-white flex flex-col items-center justify-center min-h-screen py-10 px-20 ">
         <div className="container max-w-5xl ">
           <div className="w-full bg-gray-200/30   rounded-md shadow">
+
             <HeadBar isLiveLoading={isLiveLoading} setIsLiveLoading={setIsLiveLoading} events={events} />
-            <Table headers={["actor", "action", "date"]} events={events} />
-            <button className="w-full transition text-center text-gray-800 p-4 text-md hover:bg-gray-400/20 ">
-              LOAD MORE
+            {isLoading ? "loading" : <Table headers={["actor", "action", "date"]} events={events} />}
+
+            {error && <>
+              <div className="w-full bg-white p-3 text-center text-red-600 ">
+                {error.message}
+              </div>
+            </>}
+            <button className="w-full transition text-center text-gray-800 p-4 text-md hover:bg-gray-400/20 "
+              disabled={isLoadingMore || isReachingEnd}
+              onClick={() => setSize(size + 1)}
+            >
+              {isLoadingMore
+                ? "LOADING ..."
+                : isReachingEnd
+                  ? "NO MORE EVENTS"
+                  : "LOADMORE"}
             </button>
           </div>
         </div>
